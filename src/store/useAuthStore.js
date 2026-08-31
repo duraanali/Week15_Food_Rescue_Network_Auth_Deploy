@@ -12,22 +12,97 @@ export const useAuthStore = create((set, get) => ({
   error: "",
 
   // TODO: login(username, password)
-  //   POST `${API}/auth/login` with { username, password }.
+  
+  //   `${API}/auth/login` with { username, password }
   //   On success: save data.accessToken to localStorage, set({ token, user }); return true.
   //   On a bad login: set({ error: ... }); return false.
-  login: async (username, password) => {},
+  login: async (username, password) => {
+
+    set({ status: "loading", error: ""});
+
+      try {
+        const response = await fetch(`${API}/auth/login` , {
+          method: "POST",
+          headers: { "Content-Type" : "application/json"},
+          body: JSON.stringify({username, password})
+
+
+        });
+
+       const data = await response.json();
+       
+        if (!response.ok) throw new Error ("Wrong Username or Password");
+        const token = data.accessToken || data.token;
+        localStorage.setItem("token", token);
+        set({token, user: data, status: "idle"})
+         
+
+        return true;
+
+     } catch(error) {
+      set({status: "error", error: error.message});
+
+      return false;
+
+     }
+
+
+
+  },
+  
 
   // TODO: fetchMe()
   //   If there is no token, return. Otherwise GET `${API}/auth/me`
   //   with the header  Authorization: `Bearer ${token}`  and set({ user }).
   //   If it fails, call logout().
-  fetchMe: async () => {},
+  fetchMe: async () => {
+
+    const token = get().token;
+    if(!token) return;
+    try {
+      const response = await fetch (`${API}/auth/me`, {
+
+        header: {Authorization: `Bearer ${token}`},
+
+      });
+      if(!response.ok) throw new Error ("Session expired") ;
+      set({ user: await response.json() });
+    } catch (error) {
+    set({ status: "error", error: error.message})
+    return false
+    }
+
+  },
 
   // TODO: signup(details)
   //   POST `${API}/users/add` with details; return the created account.
-  signup: async (details) => {},
+  signup: async (details) => {
+
+    set({ status: "loading", error: ""});
+     try{
+
+    const response = await fetch (`${API}/users/add`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json"},
+      body: JSON.stringify(details)
+    });
+
+  
+    const data = await response.json();
+    set({ user: data, status: "idle"})
+    return data;
+
+     } catch (error) {
+      set({ status: "error", error: error.message});
+      return null;
+      
+     }
+  },
 
   // TODO: logout()
   //   Remove the token from localStorage, then set({ token: null, user: null }).
-  logout: () => {},
+  logout: () => {
+    localStorage.removeItem("token");
+    set({ token: null, user: null, error: ""});
+  },
 }));
