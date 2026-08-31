@@ -30,7 +30,7 @@ export const useAuthStore = create((set, get) => ({
         });
 
        const data = await response.json();
-       
+
         if (!response.ok) throw new Error ("Wrong Username or Password");
         const token = data.accessToken || data.token;
         localStorage.setItem("token", token);
@@ -62,14 +62,15 @@ export const useAuthStore = create((set, get) => ({
     try {
       const response = await fetch (`${API}/auth/me`, {
 
-        header: {Authorization: `Bearer ${token}`},
+        headers: {Authorization: `Bearer ${token}`},
 
       });
+
       if(!response.ok) throw new Error ("Session expired") ;
       set({ user: await response.json() });
     } catch (error) {
-    set({ status: "error", error: error.message})
-    return false
+      get().logout();
+      return false
     }
 
   },
