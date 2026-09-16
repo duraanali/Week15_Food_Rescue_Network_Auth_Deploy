@@ -35,7 +35,7 @@ function SignupPage() {
           <input className="auth-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
 
-        <button className="auth-button">Create account</button>
+        <button className="auth-button" >Create account</button>
 
         {createdId && (
           <p className="auth-ok">
